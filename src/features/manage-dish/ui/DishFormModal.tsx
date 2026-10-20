@@ -244,7 +244,7 @@ export function DishFormModal({ open, dish, onClose }: DishFormModalProps) {
                     Подходящие гарниры. Если ничего не выбрано — подойдёт любой.
                   </p>
                   {sides.length === 0 ? (
-                    <p className="text-sm text-ink-500">Гарниров пока нет — добавьте их в «Настройки» → «Гарниры».</p>
+                    <p className="text-sm text-ink-500">Гарниров пока нет — добавьте их в разделе «Гарниры».</p>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {sides.map((side) => {

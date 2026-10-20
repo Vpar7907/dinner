@@ -3,11 +3,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect } from 'react';
 import { MenuPage } from '@/pages/menu';
 import { DishesPage } from '@/pages/dishes';
+import { SidesPage } from '@/pages/sides';
 import { ShoppingPage } from '@/pages/shopping';
 import { PantryPage } from '@/pages/pantry';
 import { SettingsPage } from '@/pages/settings';
 import { SettingsLimitsPage } from '@/pages/settings-limits';
-import { SettingsSidesPage } from '@/pages/settings-sides';
 import { SettingsDataPage } from '@/pages/settings-data';
 import { SettingsCaloriesPage } from '@/pages/settings-calories';
 import { AppHeader } from '@/widgets/app-header';
@@ -34,13 +34,13 @@ function AnimatedRoutes() {
         <Routes location={location}>
           <Route path={ROUTES.menu} element={<MenuPage />} />
           <Route path={ROUTES.dishes} element={<DishesPage />} />
-          {/* Side dishes moved into Settings; the old address keeps working. */}
-          <Route path={ROUTES.sides} element={<Navigate to={ROUTES.settingsSides} replace />} />
+          <Route path={ROUTES.sides} element={<SidesPage />} />
           <Route path={ROUTES.pantry} element={<PantryPage />} />
           <Route path={ROUTES.shopping} element={<ShoppingPage />} />
           <Route path={ROUTES.settings} element={<SettingsPage />} />
           <Route path={ROUTES.settingsLimits} element={<SettingsLimitsPage />} />
-          <Route path={ROUTES.settingsSides} element={<SettingsSidesPage />} />
+          {/* Side dishes used to live in Settings; the old address keeps working. */}
+          <Route path={ROUTES.settingsSides} element={<Navigate to={ROUTES.sides} replace />} />
           <Route path={ROUTES.settingsData} element={<SettingsDataPage />} />
           <Route path={ROUTES.settingsCalories} element={<SettingsCaloriesPage />} />
           <Route path="*" element={<Navigate to={ROUTES.menu} replace />} />

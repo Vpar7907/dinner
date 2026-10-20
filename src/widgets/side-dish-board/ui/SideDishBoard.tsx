@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { SettingsSubpage } from './SettingsSubpage';
+import { PageHeader } from '@/shared/ui';
 import { SideDishesSection } from './SideDishesSection';
 
-export function SidesSettings() {
+export function SideDishBoard() {
   return (
-    <SettingsSubpage title="Гарниры">
+    <div>
+      <PageHeader eyebrow="База гарниров" title="Гарниры" />
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -12,6 +13,6 @@ export function SidesSettings() {
       >
         <SideDishesSection />
       </motion.div>
-    </SettingsSubpage>
+    </div>
   );
 }

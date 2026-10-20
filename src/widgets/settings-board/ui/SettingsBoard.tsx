@@ -1,9 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarRange, ChevronRight, Database, Flame, Gauge, Salad } from 'lucide-react';
+import { CalendarRange, ChevronRight, Database, Flame, Gauge } from 'lucide-react';
 import { useDishStore } from '@/entities/dish';
-import { useSideDishStore } from '@/entities/side-dish';
 import { useCalorieSettings } from '@/entities/menu';
 import { MealTypeToggles } from '@/features/configure-meals';
 import { ROUTES } from '@/shared/config';
@@ -47,12 +46,10 @@ function SubsectionLink({ to, icon, title, summary, delay }: SubsectionLinkProps
 /** Settings hub: meal types on the page itself, larger subsections as separate pages. */
 export function SettingsBoard() {
   const dishes = useDishStore((s) => s.dishes);
-  const sides = useSideDishStore((s) => s.sides);
   const repeating = dishes.filter((d) => d.maxPerWeek > 1).length;
-  const disabledSides = sides.filter((s) => !s.enabled).length;
   const calories = useCalorieSettings();
   const caloriesSummary = !calories.enabled
-    ? 'Выключено · эксперимент'
+    ? 'Выключено'
     : calories.mode === 'ceiling'
       ? `Не больше ${formatNumber(calories.dailyTarget)} ккал`
       : `${formatNumber(calories.dailyTarget)} ккал ±${calories.tolerance}%`;
@@ -65,7 +62,7 @@ export function SettingsBoard() {
           <MealTypeToggles />
         </SettingsSection>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <SubsectionLink
             to={ROUTES.settingsLimits}
             icon={<Gauge className="h-6 w-6" />}
@@ -74,25 +71,18 @@ export function SettingsBoard() {
             delay={0.06}
           />
           <SubsectionLink
-            to={ROUTES.settingsSides}
-            icon={<Salad className="h-6 w-6" />}
-            title="Гарниры"
-            summary={`${pluralWithCount(sides.length, ['гарнир', 'гарнира', 'гарниров'])}${disabledSides > 0 ? ` · ${disabledSides} выкл.` : ''}`}
-            delay={0.1}
-          />
-          <SubsectionLink
             to={ROUTES.settingsCalories}
             icon={<Flame className="h-6 w-6" />}
             title="Калории"
             summary={caloriesSummary}
-            delay={0.14}
+            delay={0.1}
           />
           <SubsectionLink
             to={ROUTES.settingsData}
             icon={<Database className="h-6 w-6" />}
             title="Данные"
             summary="Экспорт, импорт, очистка"
-            delay={0.18}
+            delay={0.14}
           />
         </div>
       </div>

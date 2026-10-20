@@ -63,9 +63,9 @@ macOS — связка ключей). Папка `.cert/` содержит за�
 ```
 src/
 ├── app/            # инициализация, сид демо-данных, роутинг, глобальные стили
-├── pages/          # menu, dishes, pantry, shopping, settings, settings-limits, settings-sides, settings-data,
+├── pages/          # menu, dishes, pantry, shopping, sides, settings, settings-limits, settings-data,
 │                   # settings-calories
-├── widgets/        # app-header, weekly-board, dish-catalog, pantry-board,
+├── widgets/        # app-header, weekly-board, dish-catalog, side-dish-board, pantry-board,
 │                   # shopping-list, settings-board
 ├── features/       # generate-menu, edit-meal-slot, toggle-slot-lock, skip-meal, configure-meals, configure-calories,
 │                   # adjust-dish-limits, manage-pantry, clear-menu, manage-dish, manage-side-dish, shopping-list
@@ -114,7 +114,7 @@ src/
 
 ## Гарниры
 
-- «Настройки» → «Гарниры» (отдельная страница `#/settings/sides`; старый адрес `#/sides` ведёт туда же):
+- Отдельная вкладка «Гарниры» (`#/sides`; старый адрес `#/settings/sides` ведёт туда же):
   добавление, редактирование, удаление, ингредиенты.
 - Лимит «раз в неделю» и переключатель «использовать в генерации» (отключённый гарнир остаётся в базе).
 - Связь с блюдами настраивается с обеих сторон: в форме гарнира («Подходит к блюдам») и в форме блюда.
@@ -134,11 +134,10 @@ src/
 Главная страница настроек — приёмы пищи на неделю и ссылки на подразделы.
 Отдельные подразделы открываются своими страницами с «хлебными крошками» назад:
 - «Лимиты блюд» (`#/settings/limits`) — сколько раз каждое блюдо может встретиться в неделю и в день;
-- «Гарниры» (`#/settings/sides`) — список гарниров с лимитами, вкл./выкл., редактированием и удалением.
-- «Калории» (`#/settings/calories`) — экспериментальный учёт калорий;
+- «Калории» (`#/settings/calories`) — учёт калорий;
 - «Данные» (`#/settings/data`) — экспорт, импорт и очистка всех данных.
 
-## Калории (эксперимент)
+## Калории
 
 «Настройки» → «Калории» (`#/settings/calories`) → «Учитывать калории». Пока переключатель выключен, приложение и генератор работают
 как без этой функции (генератору передаётся `calories: null`), а сохранённые калории просто не показываются.

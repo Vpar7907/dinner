@@ -128,10 +128,12 @@ export function AddExtraItemForm() {
         <AnimatePresence initial={false}>
           {detailsOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="grid grid-cols-[110px_1fr] gap-2 overflow-hidden"
+              // Clip only while the height animates, otherwise the focus rings of the fields are cut off;
+              // -m-1/p-1 leaves room for them during the animation too.
+              initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
+              animate={{ height: 'auto', opacity: 1, transitionEnd: { overflow: 'visible' } }}
+              exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
+              className="-m-1 grid grid-cols-[110px_1fr] gap-2 p-1"
             >
               <Select value={unit} onChange={(e) => setUnit(e.target.value as IngredientUnit)} aria-label="Единица">
                 {INGREDIENT_UNITS.map((u) => (

@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarDays, ChefHat, CloudOff, Download, Refrigerator, ShoppingBasket, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import { CalendarDays, ChefHat, CloudOff, Download, Refrigerator, Salad, ShoppingBasket, SlidersHorizontal, type LucideIcon } from 'lucide-react';
 import { useShoppingList } from '@/features/shopping-list';
 import { ROUTES } from '@/shared/config';
 import { cn, useInstallPrompt, useOnlineStatus } from '@/shared/lib';
@@ -17,6 +17,7 @@ function useNavItems(): NavItem[] {
   return [
     { to: ROUTES.menu, label: 'Меню', icon: CalendarDays },
     { to: ROUTES.dishes, label: 'Блюда', icon: ChefHat },
+    { to: ROUTES.sides, label: 'Гарниры', icon: Salad },
     { to: ROUTES.pantry, label: 'Запасы', icon: Refrigerator },
     { to: ROUTES.shopping, label: 'Покупки', icon: ShoppingBasket, badge: total - done },
     { to: ROUTES.settings, label: 'Настройки', icon: SlidersHorizontal },
@@ -28,11 +29,12 @@ function isActive(pathname: string, to: string) {
 }
 
 function CountBadge({ value, className }: { value?: number; className?: string }) {
+  // AnimatePresence only handles the badge appearing/disappearing. Keying the badge itself by value
+  // would keep the old and the new badge mounted side by side during the exit, widening the tab.
   return (
     <AnimatePresence>
       {value !== undefined && value > 0 && (
         <motion.span
-          key={value}
           initial={{ scale: 0.4, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.4, opacity: 0 }}
@@ -42,7 +44,15 @@ function CountBadge({ value, className }: { value?: number; className?: string }
             className,
           )}
         >
-          {value > 99 ? '99+' : value}
+          {/* A changed number just pops in place. */}
+          <motion.span
+            key={value}
+            initial={{ scale: 1.4 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 600, damping: 25 }}
+          >
+            {value > 99 ? '99+' : value}
+          </motion.span>
         </motion.span>
       )}
     </AnimatePresence>
@@ -143,7 +153,7 @@ export function AppHeader() {
         {items.map((item) => {
           const active = isActive(pathname, item.to);
           return (
-            <NavLink key={item.to} to={item.to} className="relative flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-2">
+            <NavLink key={item.to} to={item.to} className="relative flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-2xl py-2">
               {active && (
                 <motion.span
                   layoutId="mobile-nav-pill"
@@ -155,7 +165,7 @@ export function AppHeader() {
                 <item.icon className={cn('h-5 w-5 transition-colors', active ? 'text-brand-300' : 'text-white/60')} />
                 <CountBadge value={item.badge} className="absolute -right-3 -top-2" />
               </span>
-              <span className={cn('relative text-[10px] font-semibold transition-colors', active ? 'text-white' : 'text-white/60')}>
+              <span className={cn('relative max-w-full truncate px-0.5 text-[10px] font-semibold transition-colors', active ? 'text-white' : 'text-white/60')}>
                 {item.label}
               </span>
             </NavLink>

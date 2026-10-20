@@ -10,7 +10,7 @@ import { SideLimitsTable } from '@/features/adjust-side-limits';
 import { formatKcal, plural } from '@/shared/lib';
 import { Button, EmptyState, IconButton } from '@/shared/ui';
 
-/** Full side-dish management inside Settings: list, limits, on/off, add / edit / delete. */
+/** Full side-dish management: list, limits, on/off, add / edit / delete. */
 export function SideDishesSection() {
   const dishes = useDishStore((s) => s.dishes);
   const sides = useSideDishStore((s) => s.sides);
