@@ -57,7 +57,7 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
             }}
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             className={cn(
-              'relative flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-4xl bg-white shadow-lift sm:rounded-4xl',
+              'relative flex max-h-[92vh] supports-[height:100dvh]:max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-4xl bg-white shadow-lift sm:rounded-4xl',
               widths[size],
             )}
           >
@@ -70,9 +70,19 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
                 <X className="h-5 w-5" />
               </IconButton>
             </header>
-            <div className="scrollbar-thin flex-1 overflow-y-auto px-6 py-5">{children}</div>
+            {/* On phones the modal is a bottom sheet: its last block keeps clear of the iPhone home indicator. */}
+            <div
+              className={cn(
+                'scrollbar-thin flex-1 overflow-y-auto px-6 py-5',
+                !footer && 'pb-[calc(1.25rem_+_env(safe-area-inset-bottom))] sm:pb-5',
+              )}
+            >
+              {children}
+            </div>
             {footer && (
-              <footer className="flex flex-wrap justify-end gap-2 border-t border-ink-900/5 bg-cream-50/60 px-6 py-4">{footer}</footer>
+              <footer className="flex flex-wrap justify-end gap-2 border-t border-ink-900/5 bg-cream-50/60 px-6 pb-[calc(1rem_+_env(safe-area-inset-bottom))] pt-4 sm:pb-4">
+                {footer}
+              </footer>
             )}
           </motion.div>
         </motion.div>
