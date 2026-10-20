@@ -13,10 +13,12 @@ export interface ShoppingItemRowProps {
   onHaveAtHome: (item: ShoppingItem) => void;
   /** Removes a hand-added item from the list. */
   onRemove: (item: ShoppingItem) => void;
+  /** Re-measure the layout only when this changes (order of the group), not on every render. */
+  layoutDependency?: unknown;
 }
 
 export const ShoppingItemRow = forwardRef<HTMLLIElement, ShoppingItemRowProps>(function ShoppingItemRow(
-  { item, checked, onToggle, onHaveAtHome, onRemove },
+  { item, checked, onToggle, onHaveAtHome, onRemove, layoutDependency },
   ref,
 ) {
   const sources = item.sources.map((s) => (s.count > 1 ? `${s.name} ×${s.count}` : s.name)).join(', ');
@@ -26,6 +28,7 @@ export const ShoppingItemRow = forwardRef<HTMLLIElement, ShoppingItemRowProps>(f
     <motion.li
       ref={ref}
       layout
+      layoutDependency={layoutDependency}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0, x: 40 }}

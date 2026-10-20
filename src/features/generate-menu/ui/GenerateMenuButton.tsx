@@ -24,18 +24,15 @@ export function GenerateMenuButton({ onGenerate, isGenerating, hasMenu, classNam
         className,
       )}
     >
-      <motion.span
-        className="absolute inset-y-0 -left-1/2 w-1/2 skew-x-[-20deg] bg-gradient-to-r from-transparent via-white/40 to-transparent"
-        animate={{ x: ['0%', '400%'] }}
-        transition={{ duration: isGenerating ? 0.9 : 2.8, repeat: Infinity, ease: 'easeInOut', repeatDelay: isGenerating ? 0 : 2 }}
+      <span
+        className={cn(
+          'absolute inset-y-0 -left-1/2 w-1/2 bg-gradient-to-r from-transparent via-white/40 to-transparent',
+          isGenerating ? 'animate-shine-fast' : 'animate-shine',
+        )}
       />
-      <motion.span
-        animate={isGenerating ? { rotate: 360 } : { rotate: 0 }}
-        transition={isGenerating ? { duration: 0.8, repeat: Infinity, ease: 'linear' } : { duration: 0.3 }}
-        className="relative"
-      >
+      <span className={cn('relative', isGenerating && 'animate-spin')}>
         <Sparkles className="h-5 w-5" />
-      </motion.span>
+      </span>
       <span className="relative">{isGenerating ? 'Подбираем блюда…' : hasMenu ? 'Пересобрать меню' : 'Сгенерировать меню'}</span>
     </motion.button>
   );

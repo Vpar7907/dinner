@@ -10,9 +10,11 @@ export interface PantryItemRowProps {
   item: PantryItem;
   /** The current menu needs this ingredient. */
   usedInMenu: boolean;
+  /** Re-measure the layout only when this changes (the list), not on every edit. */
+  layoutDependency?: unknown;
 }
 
-export const PantryItemRow = forwardRef<HTMLLIElement, PantryItemRowProps>(function PantryItemRow({ item, usedInMenu }, ref) {
+export const PantryItemRow = forwardRef<HTMLLIElement, PantryItemRowProps>(function PantryItemRow({ item, usedInMenu, layoutDependency }, ref) {
   const update = usePantryStore((s) => s.update);
   const remove = usePantryStore((s) => s.remove);
   const [amount, setAmount] = useState(formatDecimal(item.amount));
@@ -36,6 +38,7 @@ export const PantryItemRow = forwardRef<HTMLLIElement, PantryItemRowProps>(funct
     <motion.li
       ref={ref}
       layout
+      layoutDependency={layoutDependency}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -30, height: 0 }}

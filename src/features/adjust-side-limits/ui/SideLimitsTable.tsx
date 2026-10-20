@@ -22,6 +22,9 @@ export function SideLimitsTable({ renderMeta, renderActions, onOpen, empty }: Si
     return <>{empty ?? <p className="py-6 text-center text-sm text-ink-500">Гарниров пока нет.</p>}</>;
   }
 
+  // Rows animate their layout only when sides are added or removed, not when a modal opens on the page.
+  const layoutKey = sides.map((s) => s.id).join('|');
+
   return (
     <ul className="flex flex-col">
       <AnimatePresence initial={false}>
@@ -29,6 +32,7 @@ export function SideLimitsTable({ renderMeta, renderActions, onOpen, empty }: Si
           <motion.li
             key={side.id}
             layout
+            layoutDependency={layoutKey}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, x: -30, height: 0 }}

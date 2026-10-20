@@ -37,7 +37,7 @@ function InStockSection({ items }: { items: ShoppingItem[] }) {
   const [open, setOpen] = useState(false);
   if (items.length === 0) return null;
   return (
-    <motion.section layout className="mt-2 rounded-3xl bg-sage-50/70 p-3 ring-1 ring-sage-100">
+    <motion.section layout layoutDependency={`${open}|${items.length}`} className="mt-2 rounded-3xl bg-sage-50/70 p-3 ring-1 ring-sage-100">
       <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-3 px-2 py-1 text-left">
         <span className="flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sage-600">
@@ -187,6 +187,7 @@ export function ShoppingListBoard() {
           const complete = groupDone === group.items.length;
           // Unchecked items first; checked ones sink to the bottom with a layout animation.
           const ordered = [...group.items].sort((a, b) => Number(checked.has(a.key)) - Number(checked.has(b.key)));
+          const orderKey = ordered.map((i) => i.key).join('|');
           return (
             <motion.section
               key={group.category}
@@ -215,6 +216,7 @@ export function ShoppingListBoard() {
                     <ShoppingItemRow
                       key={item.key}
                       item={item}
+                      layoutDependency={orderKey}
                       checked={checked.has(item.key)}
                       onToggle={(key) => void toggleChecked(key)}
                       onHaveAtHome={(i) => void haveAtHome(i)}

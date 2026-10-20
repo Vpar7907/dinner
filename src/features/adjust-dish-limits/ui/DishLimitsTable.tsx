@@ -7,10 +7,20 @@ import { SearchInput, Stepper } from '@/shared/ui';
 const MAX_PER_WEEK = 7;
 const MAX_PER_DAY = 4;
 
-function LimitRow({ dish, onChange }: { dish: Dish; onChange: (patch: Pick<Dish, 'maxPerWeek'> | Pick<Dish, 'maxPerDay'>) => void }) {
+function LimitRow({
+  dish,
+  layoutKey,
+  onChange,
+}: {
+  dish: Dish;
+  /** Rows re-measure only when the visible list changes, not on every stepper click. */
+  layoutKey: string;
+  onChange: (patch: Pick<Dish, 'maxPerWeek'> | Pick<Dish, 'maxPerDay'>) => void;
+}) {
   return (
     <motion.li
       layout
+      layoutDependency={layoutKey}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
@@ -54,6 +64,7 @@ export function DishLimitsTable() {
   }, [dishes, query]);
 
   const change = (dish: Dish, patch: Partial<Dish>) => void save({ ...dish, ...patch });
+  const layoutKey = grouped.map((g) => g.dishes.map((d) => d.id).join(',')).join('|');
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,7 +82,7 @@ export function DishLimitsTable() {
           <ul className="flex flex-col">
             <AnimatePresence initial={false}>
               {list.map((dish) => (
-                <LimitRow key={dish.id} dish={dish} onChange={(patch) => change(dish, patch)} />
+                <LimitRow key={dish.id} dish={dish} layoutKey={layoutKey} onChange={(patch) => change(dish, patch)} />
               ))}
             </AnimatePresence>
           </ul>

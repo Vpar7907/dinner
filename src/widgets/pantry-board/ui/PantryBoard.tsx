@@ -24,6 +24,8 @@ export function PantryBoard() {
     for (const item of visible) map.set(item.category, [...(map.get(item.category) ?? []), item]);
     return CATEGORY_ORDER.filter((c) => map.has(c)).map((category) => ({ category, items: map.get(category)! }));
   }, [items, query]);
+  // Sections and rows animate their layout only when items are added, removed or filtered.
+  const layoutKey = grouped.map((g) => `${g.category}:${g.items.map((i) => i.id).join(',')}`).join('|');
 
   return (
     <div>
@@ -64,6 +66,7 @@ export function PantryBoard() {
               <motion.section
                 key={category}
                 layout
+                layoutDependency={layoutKey}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.04, type: 'spring', stiffness: 260, damping: 26 }}
@@ -77,7 +80,12 @@ export function PantryBoard() {
                 <ul className="flex flex-col">
                   <AnimatePresence initial={false}>
                     {list.map((item) => (
-                      <PantryItemRow key={item.id} item={item} usedInMenu={menuKeys.has(stockKey(item.name, item.unit))} />
+                      <PantryItemRow
+                        key={item.id}
+                        item={item}
+                        usedInMenu={menuKeys.has(stockKey(item.name, item.unit))}
+                        layoutDependency={layoutKey}
+                      />
                     ))}
                   </AnimatePresence>
                 </ul>

@@ -31,11 +31,14 @@ function CandidateRow({
   candidate,
   active,
   showCalories,
+  layoutKey,
   onSelect,
 }: {
   candidate: Candidate;
   active: boolean;
   showCalories: boolean;
+  /** Rows re-measure only when the list order changes, not on every selection. */
+  layoutKey: string;
   onSelect: () => void;
 }) {
   const { dish, used, limitReached, wrongCourse, isCurrent, pantryCoverage } = candidate;
@@ -46,6 +49,7 @@ function CandidateRow({
     <motion.button
       type="button"
       layout
+      layoutDependency={layoutKey}
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
@@ -155,6 +159,7 @@ export function SlotPickerModal({ slotKey, initialStep = 'dish', onClose }: Slot
   }, [slotKey, slots, enabledMeals, dishes, pantry, caloriesLeft, query, showAll]);
 
   const recommended = candidates.filter((c) => !hasWarnings(c));
+  const candidateKey = candidates.map((c) => c.dish.id).join('|');
   const others = candidates.filter((c) => hasWarnings(c));
 
   const selectedDish = dishes.find((d) => d.id === dishId) ?? null;
@@ -295,6 +300,7 @@ export function SlotPickerModal({ slotKey, initialStep = 'dish', onClose }: Slot
                     candidate={c}
                     active={c.dish.id === dishId}
                     showCalories={calories.enabled}
+                    layoutKey={candidateKey}
                     onSelect={() => chooseDish(c.dish)}
                   />
                 ))}
@@ -309,6 +315,7 @@ export function SlotPickerModal({ slotKey, initialStep = 'dish', onClose }: Slot
                     candidate={c}
                     active={c.dish.id === dishId}
                     showCalories={calories.enabled}
+                    layoutKey={candidateKey}
                     onSelect={() => chooseDish(c.dish)}
                   />
                 ))}

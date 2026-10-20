@@ -44,6 +44,8 @@ export function DishCatalog() {
   }, [dishes, query, filter, courseFilter]);
 
   const openEditor = (dish: Dish | null) => setEditor({ open: true, dish });
+  // Cards animate their layout only when the visible list changes, so opening the editor does not move them.
+  const layoutKey = visible.map((d) => d.id).join('|');
 
   return (
     <div>
@@ -105,13 +107,14 @@ export function DishCatalog() {
           }
         />
       ) : (
-        <motion.div layout className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <motion.div layout layoutDependency={layoutKey} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {visible.map((dish) => (
               <DishCard
                 key={dish.id}
                 dish={dish}
                 showCalories={caloriesEnabled}
+                layoutDependency={layoutKey}
                 sideNames={dish.allowedSideIds.map((id) => sideNames.get(id)).filter((n): n is string => Boolean(n))}
                 onClick={() => openEditor(dish)}
                 actions={

@@ -102,7 +102,7 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-ink-900/5 bg-cream-50/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-ink-900/5 bg-cream-50/95 md:bg-cream-50/80 md:backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <NavLink to={ROUTES.menu} className="group flex items-center gap-2.5">
             <motion.span
@@ -149,7 +149,7 @@ export function AppHeader() {
         </div>
       </header>
 
-      <nav className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-40 flex items-center justify-around rounded-3xl bg-ink-900/95 p-1 shadow-lift backdrop-blur-xl md:hidden">
+      <nav className="fixed inset-x-2 bottom-[max(0.5rem,env(safe-area-inset-bottom))] z-40 flex items-center justify-around rounded-3xl bg-ink-900 p-1 shadow-lift md:hidden">
         {items.map((item) => {
           const active = isActive(pathname, item.to);
           return (

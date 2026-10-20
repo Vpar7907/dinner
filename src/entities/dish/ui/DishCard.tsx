@@ -16,10 +16,12 @@ export interface DishCardProps {
   actions?: ReactNode;
   /** Show calories per serving (experimental calorie mode). */
   showCalories?: boolean;
+  /** Re-measure the layout only when this changes (e.g. the visible list), not on every render. */
+  layoutDependency?: unknown;
   onClick?: () => void;
 }
 
-export const DishCard = forwardRef<HTMLElement, DishCardProps>(function DishCard({ dish, sideNames, actions, showCalories, onClick }, ref) {
+export const DishCard = forwardRef<HTMLElement, DishCardProps>(function DishCard({ dish, sideNames, actions, showCalories, layoutDependency, onClick }, ref) {
   const meta = PROTEIN_META[dish.protein];
   const sideLabel = !dish.requiresSide
     ? 'Подаётся без гарнира'
@@ -31,6 +33,7 @@ export const DishCard = forwardRef<HTMLElement, DishCardProps>(function DishCard
     <motion.article
       ref={ref}
       layout
+      layoutDependency={layoutDependency}
       initial={{ opacity: 0, scale: 0.94, y: 12 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
@@ -39,7 +42,7 @@ export const DishCard = forwardRef<HTMLElement, DishCardProps>(function DishCard
       onClick={onClick}
       className="group relative flex cursor-pointer flex-col gap-4 overflow-hidden rounded-3xl bg-white p-5 shadow-soft ring-1 ring-ink-900/5 transition-shadow hover:shadow-lift"
     >
-      <div className={`absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-2xl ${meta.solid}`} />
+      <div className={`absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-25 [-webkit-mask-image:radial-gradient(closest-side,#000,transparent)] [mask-image:radial-gradient(closest-side,#000,transparent)] ${meta.solid}`} />
       <div className="relative flex items-start gap-4">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-cream-100 text-3xl transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110">
           {dish.emoji}

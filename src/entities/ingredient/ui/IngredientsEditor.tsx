@@ -23,6 +23,8 @@ export interface IngredientsEditorProps {
 
 export function IngredientsEditor({ value, onChange, suggestions = [], error }: IngredientsEditorProps) {
   const listId = useId();
+  // Rows animate their layout only when rows are added or removed, not on every keystroke.
+  const layoutKey = value.map((item) => item.id).join('|');
 
   const update = (id: string, patch: Partial<Ingredient>) => {
     onChange(value.map((item) => (item.id === id ? { ...item, ...patch } : item)));
@@ -60,6 +62,7 @@ export function IngredientsEditor({ value, onChange, suggestions = [], error }: 
             <motion.div
               key={item.id}
               layout
+              layoutDependency={layoutKey}
               initial={{ opacity: 0, height: 0, y: -6 }}
               animate={{ opacity: 1, height: 'auto', y: 0 }}
               exit={{ opacity: 0, height: 0, scale: 0.96 }}

@@ -5,15 +5,26 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    /* Keeps the page width when a modal locks scrolling and the scrollbar disappears. */
+    scrollbar-gutter: stable;
     scroll-behavior: smooth;
   }
 
   body {
     @apply bg-cream-50 font-sans text-ink-900 antialiased;
+  }
+
+  /* Decorative gradients on their own fixed layer: painted once, not on every scroll frame
+     as with background-attachment: fixed. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
     background-image:
       radial-gradient(60rem 30rem at 100% -10%, rgba(253, 122, 60, 0.12), transparent 60%),
       radial-gradient(50rem 30rem at -10% 10%, rgba(111, 161, 128, 0.1), transparent 60%);
-    background-attachment: fixed;
   }
 
   ::selection {
@@ -32,6 +43,53 @@
 }
 
 @layer utilities {
+  .animate-shine {
+    animation: shine 4.8s ease-in-out infinite;
+  }
+
+  .animate-shine-fast {
+    animation: shine 0.9s ease-in-out infinite;
+  }
+
+  .animate-wiggle {
+    animation: wiggle 3.9s ease-in-out infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      transform: translateX(0) skewX(-20deg);
+    }
+    /* 2.8s of motion, then a pause, like the former repeatDelay */
+    58%,
+    100% {
+      transform: translateX(400%) skewX(-20deg);
+    }
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    15% {
+      transform: rotate(-8deg);
+    }
+    40% {
+      transform: rotate(8deg);
+    }
+    60% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-shine,
+    .animate-shine-fast,
+    .animate-wiggle {
+      animation: none;
+    }
+  }
+
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgba(31, 29, 26, 0.15) transparent;

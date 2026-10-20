@@ -42,7 +42,7 @@ export function Modal({ open, onClose, title, subtitle, children, footer, size =
           exit="hidden"
         >
           <motion.div
-            className="absolute inset-0 bg-ink-900/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-ink-900/50"
             variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
