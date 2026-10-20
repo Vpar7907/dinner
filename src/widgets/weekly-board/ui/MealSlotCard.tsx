@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Ban, BookOpen, Pencil, Plus, Repeat2, RotateCcw, Shuffle, Trash2, Utensils } from 'lucide-react';
 import { ProteinBadge, type Dish } from '@/entities/dish';
@@ -27,13 +27,16 @@ export interface MealSlotCardProps {
   cascade: boolean;
   /** Show calories of the serving (experimental calorie mode). */
   showCalories: boolean;
+  /** Opens the dish card (recipe, ingredients) of a filled slot. */
+  onOpen: (key: SlotKey) => void;
   onPick: (key: SlotKey, step: PickerStep) => void;
   onShuffle: (key: SlotKey) => void;
   onSkip: (key: SlotKey) => void;
   onClear: (key: SlotKey) => void;
 }
 
-export function MealSlotCard({
+/** Memoized: opening a modal on the board must not re-render all ~28 slots mid-animation. */
+export const MealSlotCard = memo(function MealSlotCard({
   slotKey,
   meal,
   slot,
@@ -46,12 +49,12 @@ export function MealSlotCard({
   isGenerating,
   cascade,
   showCalories,
+  onOpen,
   onPick,
   onShuffle,
   onSkip,
   onClear,
 }: MealSlotCardProps) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const hasIssues = issues.length > 0;
   const contentKey = slot.skipped ? 'skipped' : `${slot.dishId ?? 'empty'}-${slot.sideId ?? 'none'}-${generation ?? 0}`;
   const shimmer = isGenerating && !slot.locked && !slot.skipped;
@@ -92,7 +95,6 @@ export function MealSlotCard({
       transition={shimmer ? { duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: order * 0.03 } : { duration: 0.2 }}
       className={cn(
         'group relative flex flex-col rounded-2xl p-3 transition-colors duration-300',
-        menuOpen && 'z-20',
         slot.skipped
           ? 'min-h-[76px] bg-[repeating-linear-gradient(135deg,transparent,transparent_8px,rgba(31,29,26,0.035)_8px,rgba(31,29,26,0.035)_16px)] ring-1 ring-ink-900/5'
           : 'min-h-[132px]',
@@ -136,7 +138,7 @@ export function MealSlotCard({
             </motion.button>
           )}
           {!slot.skipped && <LockToggle slotKey={slotKey} />}
-          <DropdownMenu items={actions} label="Действия с приёмом пищи" onOpenChange={setMenuOpen} />
+          <DropdownMenu items={actions} label="Действия с приёмом пищи" />
         </div>
       </div>
 
@@ -161,14 +163,13 @@ export function MealSlotCard({
             <motion.button
               key={contentKey}
               type="button"
-              onClick={() => onPick(slotKey, 'dish')}
+              onClick={() => (dish ? onOpen(slotKey) : onPick(slotKey, 'dish'))}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
               transition={{ duration: 0.25, ease: 'easeOut', delay: cascade ? order * 0.03 : 0 }}
-              style={{ willChange: 'transform, opacity' }}
               className="flex flex-col text-left focus-visible:outline-none"
-              title={dish ? 'Заменить вручную' : 'Выбрать блюдо'}
+              title={dish ? 'Открыть блюдо' : 'Выбрать блюдо'}
             >
               {dish ? (
                 <>
@@ -224,4 +225,4 @@ export function MealSlotCard({
       </div>
     </motion.div>
   );
-}
+});

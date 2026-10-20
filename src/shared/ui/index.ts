@@ -19,4 +19,5 @@ export { Toaster } from './toast/Toaster';
 export { toast } from './toast/store';
 export { LinkifiedText } from './LinkifiedText';
 export { DecimalInput } from './DecimalInput';
+export { ReleaseNotes } from './ReleaseNotes';
 export type { DecimalInputProps } from './DecimalInput';

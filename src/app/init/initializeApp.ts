@@ -4,6 +4,8 @@ import { useMenuStore } from '@/entities/menu';
 import { createDemoPantry, pantryRepository, usePantryStore } from '@/entities/pantry';
 import { generateWeeklyMenu } from '@/features/generate-menu';
 import { getMeta, setMeta } from '@/shared/api';
+import { APP_VERSION } from '@/shared/config';
+import { LAST_SEEN_VERSION_KEY } from '@/features/whats-new';
 
 const SEEDED_FLAG = 'demo-seeded';
 /** Second wave of demo data: breakfasts and salads, added for databases seeded before courses existed. */
@@ -68,6 +70,8 @@ async function run(): Promise<InitResult> {
     }
     await setMeta(CALORIES_SEEDED_FLAG, true);
   }
+  // A fresh install has nothing to announce: its first version counts as already seen.
+  if (shouldSeed) await setMeta(LAST_SEEN_VERSION_KEY, APP_VERSION);
   if (!flag) await setMeta(SEEDED_FLAG, true);
   if (!coursesFlag) await setMeta(COURSES_SEEDED_FLAG, true);
 

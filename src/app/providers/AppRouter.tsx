@@ -13,6 +13,7 @@ import { SettingsCaloriesPage } from '@/pages/settings-calories';
 import { AppHeader } from '@/widgets/app-header';
 import { ROUTES } from '@/shared/config';
 import { Toaster } from '@/shared/ui';
+import { WhatsNewDialog } from '@/features/whats-new';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -58,6 +59,7 @@ export function AppRouter() {
         <AppHeader />
         <AnimatedRoutes />
       </div>
+      <WhatsNewDialog />
       <Toaster />
     </HashRouter>
   );

@@ -1,14 +1,19 @@
-import { useMemo, useState } from 'react';
-import { useDishStore } from '@/entities/dish';
+import { useCallback, useMemo, useState } from 'react';
+import { useDishStore, type Dish } from '@/entities/dish';
 import { useSideDishStore } from '@/entities/side-dish';
 import { DAYS, MEALS, SLOT_ORDER, calorieBand, parseSlotKey, slotKey, useMenuStore, type SlotKey } from '@/entities/menu';
 import { GenerateMenuButton, analyzeMenu, useGenerateMenu } from '@/features/generate-menu';
 import { ClearMenuButton } from '@/features/clear-menu';
 import { SlotPickerModal, type PickerStep } from '@/features/edit-meal-slot';
 import { useSkipMeal } from '@/features/skip-meal';
+import { DishFormModal } from '@/features/manage-dish';
 import { PageHeader } from '@/shared/ui';
 import { DayCard } from './DayCard';
+import { DishDetailsModal } from './DishDetailsModal';
 import { MealSlotCard } from './MealSlotCard';
+
+/** Shared empty list, so memoized slot cards don't see a "new" issues array on every render. */
+const NO_ISSUES: never[] = [];
 
 function todayIndex(): number {
   return (new Date().getDay() + 6) % 7;
@@ -23,6 +28,16 @@ export function WeeklyBoard() {
   const skipMeal = useSkipMeal();
   const [editing, setEditing] = useState<{ key: SlotKey | null; step: PickerStep }>({ key: null, step: 'dish' });
   const [cascade, setCascade] = useState(false);
+  // The slot stays set after closing so the modal keeps its content during the exit animation.
+  const [viewing, setViewing] = useState<{ key: SlotKey | null; open: boolean }>({ key: null, open: false });
+  const [editingDish, setEditingDish] = useState<{ dish: Dish | null; open: boolean }>({ dish: null, open: false });
+
+  // Stable callbacks: the slot cards are memoized and should re-render only when their own data changes.
+  const openDish = useCallback((key: SlotKey) => setViewing({ key, open: true }), []);
+  const pick = useCallback((key: SlotKey, step: PickerStep) => setEditing({ key, step }), []);
+  const shuffle = useCallback((key: SlotKey) => void regenerateSlot(key), [regenerateSlot]);
+  const skip = useCallback((key: SlotKey) => void skipMeal(key), [skipMeal]);
+  const clear = useCallback((key: SlotKey) => void setSlot(key, { dishId: null, sideId: null, locked: false }), [setSlot]);
 
   const handleGenerate = async () => {
     setCascade(true);
@@ -36,6 +51,8 @@ export function WeeklyBoard() {
 
   const caloriesOn = menu.calories.enabled;
   const band = calorieBand(menu.calories);
+
+  const viewedSlot = viewing.key ? menu.slots[viewing.key] : undefined;
 
   const visibleMeals = MEALS.filter((meal) => menu.enabledMeals[meal.type]);
   const visibleKeys = SLOT_ORDER.filter((key) => menu.enabledMeals[parseSlotKey(key).meal]);
@@ -77,17 +94,18 @@ export function WeeklyBoard() {
                   slot={slot}
                   dish={slot.dishId ? dishMap.get(slot.dishId) : undefined}
                   side={slot.sideId ? sideMap.get(slot.sideId) : undefined}
-                  issues={analysis.issues[key] ?? []}
+                  issues={analysis.issues[key] ?? NO_ISSUES}
                   run={analysis.runs[key]}
                   order={visibleKeys.indexOf(key)}
                   generation={menu.generatedAt}
                   isGenerating={isGenerating}
                   cascade={cascade}
                   showCalories={caloriesOn}
-                  onPick={(k, step) => setEditing({ key: k, step })}
-                  onShuffle={(k) => void regenerateSlot(k)}
-                  onSkip={(k) => void skipMeal(k)}
-                  onClear={(k) => void setSlot(k, { dishId: null, sideId: null, locked: false })}
+                  onOpen={openDish}
+                  onPick={pick}
+                  onShuffle={shuffle}
+                  onSkip={skip}
+                  onClear={clear}
                 />
               );
             })}
@@ -95,6 +113,23 @@ export function WeeklyBoard() {
         ))}
       </div>
 
+      <DishDetailsModal
+        open={viewing.open}
+        slotKey={viewing.key}
+        dish={viewedSlot?.dishId ? dishMap.get(viewedSlot.dishId) : undefined}
+        side={viewedSlot?.sideId ? sideMap.get(viewedSlot.sideId) : undefined}
+        showCalories={caloriesOn}
+        onClose={() => setViewing((v) => ({ ...v, open: false }))}
+        onReplace={(key) => {
+          setViewing((v) => ({ ...v, open: false }));
+          setEditing({ key, step: 'dish' });
+        }}
+        onEdit={(dish) => {
+          setViewing((v) => ({ ...v, open: false }));
+          setEditingDish({ dish, open: true });
+        }}
+      />
+      <DishFormModal open={editingDish.open} dish={editingDish.dish} onClose={() => setEditingDish((e) => ({ ...e, open: false }))} />
       <SlotPickerModal slotKey={editing.key} initialStep={editing.step} onClose={() => setEditing((e) => ({ ...e, key: null }))} />
     </div>
   );

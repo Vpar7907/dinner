@@ -31,31 +31,25 @@ function CandidateRow({
   candidate,
   active,
   showCalories,
-  layoutKey,
   onSelect,
 }: {
   candidate: Candidate;
   active: boolean;
   showCalories: boolean;
-  /** Rows re-measure only when the list order changes, not on every selection. */
-  layoutKey: string;
   onSelect: () => void;
 }) {
   const { dish, used, limitReached, wrongCourse, isCurrent, pantryCoverage } = candidate;
   const warning = wrongCourse ? `Отмечено как «${dish.courses.map((c) => COURSE_META[c].label).join(', ')}»` : candidateWarning(candidate);
   const coveragePercent = Math.round(pantryCoverage * 100);
 
+  // A plain button with CSS transitions: the list mounts while the modal animates in,
+  // and dozens of motion components per row made the opening stutter.
   return (
-    <motion.button
+    <button
       type="button"
-      layout
-      layoutDependency={layoutKey}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileTap={{ scale: 0.98 }}
       onClick={onSelect}
       className={cn(
-        'flex w-full items-center gap-3 rounded-2xl p-3 text-left ring-1 transition-all duration-200',
+        'flex w-full items-center gap-3 rounded-2xl p-3 text-left ring-1 transition-[background-color,box-shadow,transform] duration-200 active:scale-[0.98]',
         active ? 'bg-brand-50 ring-2 ring-brand-400' : 'bg-white ring-ink-900/5 hover:bg-cream-50 hover:ring-ink-900/15',
       )}
     >
@@ -87,19 +81,15 @@ function CandidateRow({
           </span>
         )}
       </span>
-      <AnimatePresence>
-        {active && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white"
-          >
-            <Check className="h-4 w-4" />
-          </motion.span>
+      <span
+        className={cn(
+          'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white transition-transform duration-200',
+          active ? 'scale-100' : 'scale-0',
         )}
-      </AnimatePresence>
-    </motion.button>
+      >
+        <Check className="h-4 w-4" />
+      </span>
+    </button>
   );
 }
 
@@ -159,7 +149,6 @@ export function SlotPickerModal({ slotKey, initialStep = 'dish', onClose }: Slot
   }, [slotKey, slots, enabledMeals, dishes, pantry, caloriesLeft, query, showAll]);
 
   const recommended = candidates.filter((c) => !hasWarnings(c));
-  const candidateKey = candidates.map((c) => c.dish.id).join('|');
   const others = candidates.filter((c) => hasWarnings(c));
 
   const selectedDish = dishes.find((d) => d.id === dishId) ?? null;
@@ -300,7 +289,6 @@ export function SlotPickerModal({ slotKey, initialStep = 'dish', onClose }: Slot
                     candidate={c}
                     active={c.dish.id === dishId}
                     showCalories={calories.enabled}
-                    layoutKey={candidateKey}
                     onSelect={() => chooseDish(c.dish)}
                   />
                 ))}
@@ -315,7 +303,6 @@ export function SlotPickerModal({ slotKey, initialStep = 'dish', onClose }: Slot
                     candidate={c}
                     active={c.dish.id === dishId}
                     showCalories={calories.enabled}
-                    layoutKey={candidateKey}
                     onSelect={() => chooseDish(c.dish)}
                   />
                 ))}
