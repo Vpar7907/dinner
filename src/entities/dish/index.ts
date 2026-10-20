@@ -1,0 +1,10 @@
+export type { Dish, DishDraft, DishCourse, ProteinType } from './model/types';
+export { COURSE_META, COURSES, normalizeDish } from './model/course';
+export type { CourseMeta } from './model/course';
+export { PROTEIN_META, PROTEIN_TYPES, DISH_EMOJIS } from './model/protein';
+export type { ProteinMeta } from './model/protein';
+export { createDemoDishes } from './model/demo';
+export { useDishStore, useDishMap } from './model/store';
+export { dishRepository } from './api/dishRepository';
+export { ProteinBadge } from './ui/ProteinBadge';
+export { DishCard } from './ui/DishCard';
