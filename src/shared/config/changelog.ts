@@ -1,3 +1,5 @@
+import changelogSource from '../../../CHANGELOG.md?raw';
+
 /** Version of the running build, from package.json (injected by Vite). */
 export const APP_VERSION: string = __APP_VERSION__;
 
@@ -8,45 +10,39 @@ export interface Release {
   changes: string[];
 }
 
+const RELEASE_HEADING = /^##\s+\[?v?(\d+\.\d+\.\d+)\]?\s*(?:[—–-]\s*(\d{4}-\d{2}-\d{2}))?\s*$/;
+const LIST_ITEM = /^\s*[-*]\s+(.*)$/;
+
 /**
- * Newest first. When releasing: bump "version" in package.json and add an entry here with the same
- * version — the settings page and the "what's new" dialog show it.
+ * Parses CHANGELOG.md: `## 1.2.0 — 2026-10-23` starts a release, `- …` items are its changes.
+ * An indented line without a marker continues the previous item; everything else is ignored.
  */
-export const CHANGELOG: Release[] = [
-  {
-    version: '1.2.0',
-    date: '2026-10-23',
-    changes: [
-      'Число «раз в неделю» у блюда теперь строгое: генератор ставит блюдо ровно столько раз, подряд в соседние дни',
-      'Окна снизу экрана больше не мелькают на Android',
-      'Меню и переходы между разделами работают плавнее на Android',
-    ],
-  },
-  {
-    version: '1.1.0',
-    date: '2026-10-20',
-    changes: [
-      'Гарниры вынесены в отдельную вкладку',
-      'Нажатие на блюдо в меню открывает его карточку с рецептом и ингредиентами',
-      'Меню «⋯» у блюда больше не мелькает и не перекрывается соседними днями',
-      'Анимации и модалки работают плавнее, особенно на телефонах',
-      'Учёт калорий: цель или потолок на день, мягкий или жёсткий режим',
-      'Модалки на iPhone не заходят под нижнюю полоску',
-      'Список изменений и номер версии в настройках',
-    ],
-  },
-  {
-    version: '1.0.0',
-    date: '2026-10-20',
-    changes: [
-      'Генератор меню на неделю: чередование белка, повторы в соседние дни, подбор гарниров',
-      'База блюд и гарниров с ингредиентами, лимитами и рецептами',
-      'Запасы и список покупок с учётом того, что уже есть дома',
-      'Экспорт, импорт и очистка данных',
-      'Работа без интернета и установка на телефон',
-    ],
-  },
-];
+export function parseChangelog(source: string): Release[] {
+  const releases: Release[] = [];
+  let current: Release | null = null;
+  for (const line of source.split(/\r?\n/)) {
+    const heading = RELEASE_HEADING.exec(line);
+    if (heading) {
+      current = { version: heading[1], date: heading[2] ?? '', changes: [] };
+      releases.push(current);
+      continue;
+    }
+    if (!current) continue;
+    if (line.startsWith('#')) {
+      current = null;
+      continue;
+    }
+    const item = LIST_ITEM.exec(line);
+    if (item) current.changes.push(item[1].trim());
+    else if (/^\s+\S/.test(line) && current.changes.length > 0) {
+      current.changes[current.changes.length - 1] += ` ${line.trim()}`;
+    }
+  }
+  return releases;
+}
+
+/** Newest first, built from CHANGELOG.md in the repository root. */
+export const CHANGELOG: Release[] = parseChangelog(changelogSource);
 
 /** Releases newer than `version` (newest first); all of them for an unknown version. */
 export function releasesSince(version: string | undefined): Release[] {
@@ -60,5 +56,5 @@ export function formatReleaseDate(date: string): string {
 }
 
 if (import.meta.env.DEV && CHANGELOG[0]?.version !== APP_VERSION) {
-  console.warn(`changelog.ts: нет записи для версии ${APP_VERSION} из package.json`);
+  console.warn(`CHANGELOG.md: нет записи для версии ${APP_VERSION} из package.json`);
 }

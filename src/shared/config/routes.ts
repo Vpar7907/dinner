@@ -10,6 +10,7 @@ export const ROUTES = {
   settingsSides: '/settings/sides',
   settingsData: '/settings/data',
   settingsCalories: '/settings/calories',
+  settingsAbout: '/settings/about',
 } as const;
 
 export type RouteKey = keyof typeof ROUTES;

@@ -9,6 +9,7 @@ import { SettingsPage } from '@/pages/settings';
 import { SettingsLimitsPage } from '@/pages/settings-limits';
 import { SettingsDataPage } from '@/pages/settings-data';
 import { SettingsCaloriesPage } from '@/pages/settings-calories';
+import { SettingsAboutPage } from '@/pages/settings-about';
 import { AppHeader } from '@/widgets/app-header';
 import { ROUTES } from '@/shared/config';
 import { Toaster } from '@/shared/ui';
@@ -41,6 +42,7 @@ function AnimatedRoutes() {
           <Route path={ROUTES.settingsSides} element={<Navigate to={ROUTES.sides} replace />} />
           <Route path={ROUTES.settingsData} element={<SettingsDataPage />} />
           <Route path={ROUTES.settingsCalories} element={<SettingsCaloriesPage />} />
+          <Route path={ROUTES.settingsAbout} element={<SettingsAboutPage />} />
           <Route path="*" element={<Navigate to={ROUTES.menu} replace />} />
         </Routes>
       </motion.main>
