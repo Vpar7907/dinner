@@ -15,7 +15,7 @@ import {
 import { useSideDishStore } from '@/entities/side-dish';
 import { useCalorieSettings } from '@/entities/menu';
 import { IngredientsEditor, collectSuggestions, sanitizeIngredients } from '@/entities/ingredient';
-import { cn } from '@/shared/lib';
+import { cn, plural } from '@/shared/lib';
 import { Button, DecimalInput, EmojiPicker, Field, Input, LinkifiedText, Modal, Stepper, Switch, Textarea, toast } from '@/shared/ui';
 
 export interface DishFormModalProps {
@@ -137,7 +137,7 @@ export function DishFormModal({ open, dish, onClose }: DishFormModalProps) {
               onChange={(event) => patch({ name: event.target.value })}
             />
           </Field>
-          <Field label="Макс. раз в неделю">
+          <Field label="Раз в неделю">
             <Stepper value={draft.maxPerWeek} min={1} max={7} onChange={(maxPerWeek) => patch({ maxPerWeek })} />
           </Field>
           <Field label="Макс. в день">
@@ -158,7 +158,7 @@ export function DishFormModal({ open, dish, onClose }: DishFormModalProps) {
 
         {draft.maxPerWeek > 1 && (
           <p className="-mt-3 rounded-2xl bg-sage-50 px-4 py-2.5 text-xs font-medium text-sage-600">
-            🔁 Повторы этого блюда генератор поставит в соседние дни — готовите один раз, едите несколько дней.
+            🔁 Генератор поставит блюдо ровно {draft.maxPerWeek} {plural(draft.maxPerWeek, ['раз', 'раза', 'раз'])} подряд, в соседние дни — готовите один раз, едите несколько дней.
           </p>
         )}
 

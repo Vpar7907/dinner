@@ -89,12 +89,13 @@ export const MealSlotCard = memo(function MealSlotCard({
 
   return (
     // No `layout` here or on DayCard: layout projection fights the content swap below and
-    // makes cards jump on Android. The shimmer is opacity-only so it stays on the compositor.
-    <motion.div
-      animate={shimmer ? { opacity: [1, 0.55, 1] } : { opacity: 1 }}
-      transition={shimmer ? { duration: 0.9, repeat: Infinity, ease: 'easeInOut', delay: order * 0.03 } : { duration: 0.2 }}
+    // makes cards jump on Android. The shimmer is a CSS opacity animation: it stays on the compositor
+    // and keeps running while the generator occupies the main thread.
+    <div
+      style={shimmer ? { animationDelay: `${order * 30}ms` } : undefined}
       className={cn(
         'group relative flex flex-col rounded-2xl p-3 transition-colors duration-300',
+        shimmer && 'animate-shimmer',
         slot.skipped
           ? 'min-h-[76px] bg-[repeating-linear-gradient(135deg,transparent,transparent_8px,rgba(31,29,26,0.035)_8px,rgba(31,29,26,0.035)_16px)] ring-1 ring-ink-900/5'
           : 'min-h-[132px]',
@@ -223,6 +224,6 @@ export const MealSlotCard = memo(function MealSlotCard({
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </div>
   );
 });

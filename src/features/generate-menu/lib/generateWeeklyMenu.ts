@@ -59,6 +59,8 @@ interface Attempt {
   calorieEmpty: number;
   /** Some placed dish or side has no calories set. */
   unknownCalories: boolean;
+  /** Servings that could not be placed because a dish's run did not fit its weekly count. */
+  shortServings: number;
 }
 
 const ATTEMPTS = 120;
@@ -68,6 +70,8 @@ const PENALTY = {
   proteinRepeat: 12,
   missingSide: 8,
   sideRepeat: 1,
+  /** Per serving a dish falls short of its weekly count. */
+  shortServing: 20,
   calorieDaySoft: 3,
   calorieDeviationSoft: 40,
   calorieDayStrict: 20,
@@ -76,9 +80,6 @@ const PENALTY = {
 
 /** Rough share of the daily calories each course is expected to take. */
 const CALORIE_SHARE: Record<DishCourse, number> = { breakfast: 0.25, main: 0.35, salad: 0.15 };
-
-/** Relative chance of repeating a new dish on 0, 1, 2, 3… following days. */
-const EXTRA_DAY_WEIGHTS = [1, 1.6, 0.8, 0.35, 0.15];
 
 /**
  * Lunch and dinner form the "main" chain where the protein must alternate
@@ -104,9 +105,11 @@ function isBetter(a: Attempt, b: Attempt | null): boolean {
  * picks, by weighted random, a dish that suits the meal's course, has weekly
  * and daily usage left and — for lunch/dinner — does not share a protein with
  * the neighbouring main meals. Dishes that use ingredients from the pantry get
- * a higher weight. A dish that may appear several times a week is then
- * repeated on the following days at the same meal (cook once, eat 2–3 days),
- * so repeats are always on consecutive days. The attempt with the lowest
+ * a higher weight. A dish is served exactly as many times a week as its
+ * `maxPerWeek` says: it is repeated on the following days at the same meal
+ * (cook once, eat N days), so repeats are always on consecutive days. Dishes
+ * whose whole run fits are preferred; a run cut short (end of the week, a
+ * fixed slot, no side left) is penalised. The attempt with the lowest
  * penalty (and, on a tie, the best pantry usage) wins.
  */
 export function generateWeeklyMenu(input: GeneratorInput): GeneratorResult {
@@ -151,6 +154,9 @@ function runAttempt(
   const usage = new Map<string, number>();
   const dayUsage = new Map<string, number>();
   const dishDays = new Map<string, Set<number>>();
+  /** Re-rolling a single slot leaves no room for a run, so weekly counts are enforced only when filling several slots. */
+  const fullRuns = targets.size > 1;
+  let shortServings = 0;
   const sideUsage = new Map<string, number>();
   /** Dishes the generator has started (and possibly repeated): they are not used again later in the week. */
   const closed = new Set<string>();
@@ -172,14 +178,21 @@ function runAttempt(
 
   // Each course forms its own chain of consecutive meals.
   const chains: Record<DishCourse, SlotKey[]> = { breakfast: [], main: [], salad: [] };
-  for (const key of active) chains[courseOfSlot(key)].push(key);
+  const chainPos = new Map<SlotKey, number>();
+  for (const key of active) {
+    const chain = chains[courseOfSlot(key)];
+    chainPos.set(key, chain.length);
+    chain.push(key);
+  }
   const chainOf = (key: SlotKey) => chains[courseOfSlot(key)];
 
   const record = (key: SlotKey, dish: Dish, sideId: string | null) => {
     const { day } = parseSlotKey(key);
     usage.set(dish.id, (usage.get(dish.id) ?? 0) + 1);
     dayUsage.set(`${dish.id}|${day}`, (dayUsage.get(`${dish.id}|${day}`) ?? 0) + 1);
-    dishDays.set(dish.id, new Set([...(dishDays.get(dish.id) ?? []), day]));
+    const days = dishDays.get(dish.id);
+    if (days) days.add(day);
+    else dishDays.set(dish.id, new Set([day]));
     ledger.consume(dish.ingredients);
     if (goal) {
       const servedSide = dish.requiresSide ? sideId : null;
@@ -215,7 +228,7 @@ function runAttempt(
 
   const neighbourProteins = (key: SlotKey): [ProteinType | null, ProteinType | null] => {
     const chain = chainOf(key);
-    const pos = chain.indexOf(key);
+    const pos = chainPos.get(key)!;
     return [proteinAt(chain, pos - 1), proteinAt(chain, pos + 1)];
   };
 
@@ -241,7 +254,7 @@ function runAttempt(
   /** Sides of the previous and next side-bearing meals in the chain. */
   const neighbourSides = (key: SlotKey): Set<string> => {
     const chain = chainOf(key);
-    const pos = chain.indexOf(key);
+    const pos = chainPos.get(key)!;
     const near = new Set<string>();
     for (const step of [-1, 1]) {
       for (let j = pos + step; j >= 0 && j < chain.length; j += step) {
@@ -290,14 +303,18 @@ function runAttempt(
   };
   const fitsDay = (dish: Dish, day: number): boolean => dayKcal[day] + (dish.calories ?? 0) + sideKcalRange(dish).min <= band!.max;
 
-  const pickSide = (dish: Dish, key: SlotKey): string | null => {
+  /** `servings` — how many days the dish (and so its side) will be served in a row. */
+  const pickSide = (dish: Dish, key: SlotKey, servings: number): string | null => {
     if (!dish.requiresSide) return null;
-    const allowed = availableSides(dish);
+    let allowed = availableSides(dish);
     if (allowed.length === 0) {
       missingSide = true;
       penalty += PENALTY.missingSide;
       return null;
     }
+    // Leftovers keep the side: prefer sides with enough servings left for the whole run.
+    const lasting = allowed.filter((id) => sideRemaining(id) >= servings);
+    if (lasting.length > 0) allowed = lasting;
     const near = neighbourSides(key);
     const fresh = allowed.filter((id) => !near.has(id));
     if (fresh.length === 0 && allowed.length > 1) penalty += PENALTY.sideRepeat;
@@ -378,13 +395,24 @@ function runAttempt(
       }
       pool = fitting;
     }
+    // Weekly counts are strict: prefer dishes whose whole run of `maxPerWeek` days fits from here.
+    if (fullRuns) {
+      const fitting = pool.filter((d) => {
+        if ((usage.get(d.id) ?? 0) > 0 || d.maxPerWeek <= 1) return true;
+        if (d.requiresSide && !availableSides(d).some((id) => sideRemaining(id) >= d.maxPerWeek)) return false;
+        const servingKcal = goal ? (d.calories ?? 0) + sideKcalRange(d).min : 0;
+        return runSlots(key, d, servingKcal).length >= d.maxPerWeek - 1;
+      });
+      if (fitting.length > 0) pool = fitting;
+    }
     const ideal = goal ? idealKcal(key) : 0;
 
     const chain = chainOf(key);
-    const pos = chain.indexOf(key);
+    const pos = chainPos.get(key)!;
     const [prevProtein, nextProtein] = neighbourProteins(key);
     const dish = weightedPick(pool, (d) => {
-      let weight = (usage.get(d.id) ?? 0) === 0 ? 1.5 : 0.5;
+      // A dish already in a fixed slot next door still owes servings: continuing it keeps its count.
+      let weight = (usage.get(d.id) ?? 0) === 0 ? 1.5 : fullRuns ? 3 : 0.5;
       weight *= 1 + 6 * ledger.coverage(d.ingredients); // strong preference for what is already at home
       if (!strict && (d.protein === prevProtein || d.protein === nextProtein)) weight *= 0.6;
       if (proteinAt(chain, pos - 2) === d.protein) weight *= 0.55;
@@ -394,14 +422,19 @@ function runAttempt(
     if (!dish) continue;
 
     const isNew = (usage.get(dish.id) ?? 0) === 0;
-    const sideId = pickSide(dish, key);
+    const sideId = pickSide(dish, key, isNew ? dish.maxPerWeek : 1);
     place(key, dish, sideId);
 
     if (isNew) {
-      // Leftovers keep the same side, so the run is also capped by the side's weekly limit.
+      // The rest of the weekly count goes to the following days. Leftovers keep the same side,
+      // so the run is also capped by the side's weekly limit.
       const ahead = runSlots(key, dish, goal ? (dish.calories ?? 0) + sideKcal(sideId) : 0).slice(0, sideId ? Math.max(0, sideRemaining(sideId)) : undefined);
-      const extra = ahead.length > 0 ? (weightedPick(EXTRA_DAY_WEIGHTS.slice(0, ahead.length + 1).map((w, n) => ({ w, n })), (o) => o.w)?.n ?? 0) : 0;
-      for (const next of ahead.slice(0, extra)) place(next, dish, sideId);
+      for (const next of ahead) place(next, dish, sideId);
+      const short = dish.maxPerWeek - 1 - ahead.length;
+      if (fullRuns && short > 0) {
+        shortServings += short;
+        penalty += PENALTY.shortServing * short;
+      }
       closed.add(dish.id);
     }
   }
@@ -430,6 +463,7 @@ function runAttempt(
     calorieDaysOff,
     calorieEmpty,
     unknownCalories,
+    shortServings,
   };
 }
 
@@ -448,6 +482,12 @@ function describeIssues(attempt: Attempt, dishes: Dish[], goal: CalorieGoal | nu
   }
   if (attempt.proteinRepeat) {
     warnings.push('Не удалось полностью избежать одинакового белка подряд — добавьте основные блюда с другим видом мяса.');
+  }
+  if (attempt.shortServings > 0) {
+    const n = attempt.shortServings;
+    warnings.push(
+      `Не все блюда встали в меню столько раз, сколько указано в неделю: не хватило ${n} ${plural(n, ['порции', 'порций', 'порций'])} — мало свободных дней подряд или гарниров. Добавьте блюда с меньшим числом раз в неделю.`,
+    );
   }
   if (attempt.missingSide) {
     warnings.push('Для некоторых блюд не хватило гарниров — включите гарниры, увеличьте их лимиты или добавьте новые.');

@@ -53,7 +53,7 @@ export const DishCard = forwardRef<HTMLElement, DishCardProps>(function DishCard
             <ProteinBadge protein={dish.protein} />
             <span className="inline-flex items-center gap-1 rounded-full bg-cream-100 px-2.5 py-1 text-xs font-semibold text-ink-700">
               <Repeat className="h-3 w-3" />
-              до {dish.maxPerWeek} {plural(dish.maxPerWeek, ['раза', 'раз', 'раз'])}/нед
+              {dish.maxPerWeek} {plural(dish.maxPerWeek, ['раз', 'раза', 'раз'])}/нед
             </span>
             {showCalories && (
               <span className="inline-flex items-center gap-1 rounded-full bg-cream-100 px-2.5 py-1 text-xs font-semibold text-ink-700">

@@ -1,6 +1,5 @@
 import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect } from 'react';
 import { MenuPage } from '@/pages/menu';
 import { DishesPage } from '@/pages/dishes';
 import { SidesPage } from '@/pages/sides';
@@ -18,12 +17,10 @@ import { WhatsNewDialog } from '@/features/whats-new';
 function AnimatedRoutes() {
   const location = useLocation();
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [location.pathname]);
-
+  // Jump to the top once the old page has faded out: a smooth scroll running alongside the
+  // page transition repaints the whole page every frame and stutters on Android.
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo({ top: 0, behavior: 'instant' })}>
       <motion.main
         key={location.pathname}
         initial={{ opacity: 0, y: 12 }}

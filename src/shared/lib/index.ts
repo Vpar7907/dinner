@@ -8,3 +8,4 @@ export { linkify, firstLink, linkLabel } from './linkify';
 export type { TextPart } from './linkify';
 export { downloadJson, isoDate } from './download';
 export { parseDecimal, formatDecimal } from './decimal';
+export { useMediaQuery, lockPageScroll } from './media';

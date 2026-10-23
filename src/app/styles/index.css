@@ -55,6 +55,16 @@
     animation: wiggle 3.9s ease-in-out infinite;
   }
 
+  .animate-shimmer {
+    animation: shimmer 0.9s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    50% {
+      opacity: 0.55;
+    }
+  }
+
   @keyframes shine {
     0% {
       transform: translateX(0) skewX(-20deg);
@@ -85,7 +95,8 @@
   @media (prefers-reduced-motion: reduce) {
     .animate-shine,
     .animate-shine-fast,
-    .animate-wiggle {
+    .animate-wiggle,
+    .animate-shimmer {
       animation: none;
     }
   }
